@@ -5,7 +5,8 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-2197"]
                  [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
-                 [om "0.5.3"]]
+                 [om "0.5.3"]
+                 [org.clojars.franks42/cljs-uuid-utils "0.1.3"]]
 
   :plugins [[lein-cljsbuild "1.0.2"]]
 
