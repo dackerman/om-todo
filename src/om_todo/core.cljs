@@ -6,6 +6,10 @@
 
 (enable-console-print!)
 
+(defn apply-command [app-state command]
+  (om/transact! app-state [:commands] #(conj % command))
+  (om/transact! app-state [:lists] #(c/apply-command command %)))
+
 (defn make-uuid []
   (cljs-uuid-utils/make-random-uuid))
 
@@ -28,7 +32,11 @@
         (dom/div nil
           (dom/h2 nil (:name list))
           (apply dom/ol nil
-            (map #(dom/li nil (str (:name %))) todos)))))))
+            (map #(dom/li nil (str (:name %))) todos))
+          (dom/button
+            #js {:onClick #(apply-command app
+                             (c/CreateTodoCommand. (make-uuid) "New Item" list-id (current-timestamp)))}
+            "Add a new item"))))))
 
 (defn router [app owner]
   (reify
