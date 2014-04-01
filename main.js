@@ -4,7 +4,8 @@ goog.addDependency("../clojure/browser/event.js", ['clojure.browser.event'], ['c
 goog.addDependency("../clojure/browser/net.js", ['clojure.browser.net'], ['goog.net.xpc.CrossPageChannel', 'clojure.browser.event', 'goog.net.xpc.CfgFields', 'cljs.core', 'goog.net.EventType', 'goog.json', 'goog.net.XhrIo']);
 goog.addDependency("../clojure/browser/repl.js", ['clojure.browser.repl'], ['clojure.browser.event', 'clojure.browser.net', 'cljs.core']);
 goog.addDependency("../om_todo/repl.js", ['om_todo.repl'], ['cljs.core', 'clojure.browser.repl']);
+goog.addDependency("../om_todo/commands.js", ['om_todo.commands'], ['cljs.core']);
 goog.addDependency("../om/dom.js", ['om.dom'], ['cljs.core']);
 goog.addDependency("../om/core.js", ['om.core'], ['cljs.core', 'om.dom', 'goog.ui.IdGenerator']);
 goog.addDependency("../cljs_uuid_utils.js", ['cljs_uuid_utils'], ['cljs.core', 'goog.string.StringBuffer']);
-goog.addDependency("../om_todo/core.js", ['om_todo.core'], ['cljs.core', 'om.core', 'cljs_uuid_utils', 'om.dom']);
+goog.addDependency("../om_todo/core.js", ['om_todo.core'], ['cljs.core', 'om.core', 'cljs_uuid_utils', 'om.dom', 'om_todo.commands']);

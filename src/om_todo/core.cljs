@@ -1,6 +1,7 @@
 (ns om-todo.core
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [om-todo.commands :as c]
             [cljs-uuid-utils]))
 
 (enable-console-print!)
@@ -11,34 +12,12 @@
 (defn current-timestamp []
   (.getTime (js/Date.)))
 
-(defrecord Todo [id name list-id])
-
-(defrecord TodoList [id name todos])
-
-(defn add-todo [list todo]
-  (update-in list [:todos] (fn [todos] (conj todos todo))))
-
-(defprotocol Command
-  (apply-command [this todos]))
-
-(defrecord CreateListCommand [id name timestamp]
-  Command
-  (apply-command [this lists]
-    (let [list (TodoList. id name [])]
-      (assoc lists id list))))
-
-(defrecord CreateTodoCommand [id name list-id timestamp]
-  Command
-  (apply-command [this lists]
-    (let [todo (Todo. id name list-id)]
-      (update-in lists [list-id] (fn [list] (add-todo list todo))))))
-
 (defn recalc-app-state [all-commands]
   (loop [commands all-commands
          lists {}]
     (if (empty? commands)
       lists
-      (recur (rest commands) (apply-command (first commands) lists)))))
+      (recur (rest commands) (c/apply-command (first commands) lists)))))
 
 (defn list-view [app owner {:keys [list-id] :as params}]
   (reify
@@ -59,14 +38,15 @@
 
 (def app-state (atom nil))
 
-(def commands [(CreateListCommand. 1 "Chores" (current-timestamp))
-               (CreateTodoCommand. 2 "Laundry" 1 (current-timestamp))
-               (CreateTodoCommand. 3 "Vacuum" 1 (current-timestamp))
-               (CreateListCommand. 4 "Safeway" (current-timestamp))
-               (CreateTodoCommand. 5 "Almond Milk" 4 (current-timestamp))
-               (CreateTodoCommand. 6 "Safeway Chicken" 4 (current-timestamp))
-               (CreateTodoCommand. 7 "Lettuce" 4 (current-timestamp))
-               (CreateTodoCommand. 8 "Dishes" 1 (current-timestamp))])
+(def commands [(c/CreateListCommand. 1 "Chores" (current-timestamp))
+               (c/CreateTodoCommand. 2 "Laundry" 1 (current-timestamp))
+               (c/CreateTodoCommand. 3 "Vacuum" 1 (current-timestamp))
+               (c/CreateListCommand. 4 "Safeway" (current-timestamp))
+               (c/CreateTodoCommand. 5 "Almond Milk" 4 (current-timestamp))
+               (c/CreateTodoCommand. 6 "Safeway Chicken" 4 (current-timestamp))
+               (c/CreateTodoCommand. 7 "Lettuce" 4 (current-timestamp))
+               (c/CreateTodoCommand. 8 "Dishes" 1 (current-timestamp))
+               (c/ReorderTodoCommand. 4 7 1)])
 
 ;; Apply commands
 (let [lists (recalc-app-state commands)]
@@ -78,7 +58,7 @@
        :user {:username "dackerman"
               :name "David Ackerman"}
        :view {:name :list
-              :params {:list-id 1}}
+              :params {:list-id 4}}
        :lists lists
        :commands commands})))
 
