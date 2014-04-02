@@ -11,3 +11,4 @@ pom.xml
 .idea/workspace.xml
 .nrepl-port
 repl/
+main.js
