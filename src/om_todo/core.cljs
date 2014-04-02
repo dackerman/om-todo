@@ -8,22 +8,11 @@
 
 (enable-console-print!)
 
-(defn apply-command [app-state command]
-  (om/transact! app-state [:commands ] #(conj % command))
-  (om/transact! app-state [:lists ] #(c/apply-command command %)))
-
 (defn make-uuid []
   (cljs-uuid-utils/make-random-uuid))
 
 (defn current-timestamp []
   (.getTime (js/Date.)))
-
-(defn recalc-app-state [all-commands]
-  (loop [commands all-commands
-         lists {}]
-    (if (empty? commands)
-      lists
-      (recur (rest commands) (c/apply-command (first commands) lists)))))
 
 (defn event-val [e]
   (.. e -target -value))
@@ -74,7 +63,34 @@
     (render-state [_ state]
       (om/build list-view app {:init-state state :opts (-> app :view :params )}))))
 
-(def app-state (atom nil))
+(defn todos-view [app owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:command-chan (chan (sliding-buffer 100))})
+    om/IWillMount
+    (will-mount [_]
+      (let [commands (om/get-state owner [:command-chan ])]
+        (go (while true
+              (let [command (<! commands)]
+                (.log js/console (str "Applying command: " (pr-str command)))
+                (apply-command app command))))))
+    om/IRenderState
+    (render-state [this state]
+      (om/build router app {:init-state state}))))
+
+;; App bootstrapping
+
+(defn apply-command [app-state command]
+  (om/transact! app-state [:commands ] #(conj % command))
+  (om/transact! app-state [:lists ] #(c/apply-command command %)))
+
+(defn recalc-app-state [all-commands]
+  (loop [commands all-commands
+         lists {}]
+    (if (empty? commands)
+      lists
+      (recur (rest commands) (c/apply-command (first commands) lists)))))
 
 (def commands [(c/CreateListCommand. 1 "Chores" (current-timestamp))
                (c/CreateTodoCommand. 2 "Laundry" 1 (current-timestamp))
@@ -87,29 +103,12 @@
                (c/ReorderTodoCommand. 4 7 1)])
 
 (def app-state
-  (atom {:text "Hello world!"
-         :user {:username "dackerman"
+  (atom {:user {:username "dackerman"
                 :name "David Ackerman"}
          :view {:name :list
                 :params {:list-id 4}}
          :lists (recalc-app-state commands)
          :commands commands}))
-
-(defn todos-view [app owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:command-chan (chan (sliding-buffer 100))})
-    om/IWillMount
-    (will-mount [_]
-      (let [commands (om/get-state owner [:command-chan ])]
-        (go (while true
-              (let [command (<! commands)]
-                ;(.log js/console (str "Received command: " (pr-str command)))
-                (apply-command app command))))))
-    om/IRenderState
-    (render-state [this state]
-      (om/build router app {:init-state state}))))
 
 (om/root
   todos-view
