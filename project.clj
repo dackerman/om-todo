@@ -9,7 +9,7 @@
                  [org.clojars.franks42/cljs-uuid-utils "0.1.3"]
                  [org.clojure/clojure-contrib "1.2.0"]]
 
-  :plugins [[lein-cljsbuild "1.0.2"]]
+  :plugins [[lein-cljsbuild "1.0.3"]]
 
   :source-paths ["src"]
 
