@@ -2,6 +2,9 @@
 
 (defrecord Todo [id name list-id])
 
+(defn get-key [todo]
+  (pr-str (:id todo)))
+
 (defrecord TodoList [id name todos])
 
 (defn add-todo [list todo]

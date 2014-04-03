@@ -17,6 +17,7 @@
 (defn event-val [e]
   (.. e -target -value))
 
+
 (defn new-todo-input [list owner]
   (reify
     om/IRenderState
@@ -35,6 +36,15 @@
                            (current-timestamp)))}
             "Add"))))))
 
+(defn edit-todo-view [todo owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div
+        #js {:className "edit-todo"}
+        (dom/h2 nil (:name todo))
+        (dom/p nil (:list todo))))))
+
 (defn list-view [app owner {:keys [list-id] :as params}]
   (reify
     om/IRenderState
@@ -42,6 +52,8 @@
       (let [list (get (:lists app) list-id)
             todos (:todos list)]
         (dom/div nil
+          (if-let [todo (om/get-state owner :editing-todo )]
+            (om/build edit-todo-view todo {:react-key (c/get-key todo)}))
           (dom/p nil "Lists")
           (apply dom/ul nil
             (map (fn [list]
@@ -53,15 +65,22 @@
                          (:name list)))))
               (vals (:lists app))))
           (dom/h2 nil (:name list))
-          (om/build new-todo-input list {:init-state state})
+          (om/build new-todo-input list {:key :id :init-state state})
           (apply dom/ol nil
-            (map #(dom/li nil (str (:name %))) todos)))))))
+            (map (fn [todo] (dom/li
+                              #js {:onClick #(om/set-state! owner :editing-todo todo)}
+                              (str (:name todo)))) todos)))))))
 
 (defn router [app owner]
   (reify
     om/IRenderState
     (render-state [_ state]
-      (om/build list-view app {:init-state state :opts (-> app :view :params )}))))
+      (om/build list-view app {:react-key (-> app :view :params :list-id )
+                               :init-state state :opts (-> app :view :params )}))))
+
+(defn apply-command [app-state command]
+  (om/transact! app-state [:commands ] #(conj % command))
+  (om/transact! app-state [:lists ] #(c/apply-command command %)))
 
 (defn todos-view [app owner]
   (reify
@@ -80,10 +99,6 @@
       (om/build router app {:init-state state}))))
 
 ;; App bootstrapping
-
-(defn apply-command [app-state command]
-  (om/transact! app-state [:commands ] #(conj % command))
-  (om/transact! app-state [:lists ] #(c/apply-command command %)))
 
 (defn recalc-app-state [all-commands]
   (loop [commands all-commands

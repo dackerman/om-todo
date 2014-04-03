@@ -1,0 +1,6 @@
+.edit-todo {
+    border: 1px solid black;
+    float: right;
+    min-height: 600px;
+    width: 400px;
+}
