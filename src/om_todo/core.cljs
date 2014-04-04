@@ -14,6 +14,8 @@
 (defn current-timestamp []
   (.getTime (js/Date.)))
 
+(def due-today current-timestamp)
+
 (defn event-val [e]
   (.. e -target -value))
 
@@ -32,9 +34,16 @@
                          (c/CreateTodoCommand.
                            (make-uuid)
                            (om/get-state owner [:input-val ])
+                           (due-today)
                            id
                            (current-timestamp)))}
             "Add"))))))
+
+(defn date-picker [date-field owner]
+  (reify
+    om/IRenderState
+    (render-state [_ _]
+      (dom/span nil date-field))))
 
 (defn edit-todo-view [todo owner]
   (reify
@@ -43,7 +52,32 @@
       (dom/div
         #js {:className "edit-todo"}
         (dom/h2 nil (:name todo))
-        (dom/p nil (:list todo))))))
+        (dom/hr nil nil)
+        (dom/table nil
+          (dom/tr nil
+            (dom/td nil "Date")
+            (dom/td nil (om/build date-picker (:due-date todo)))))))))
+
+(defn debug-view [app owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/pre nil
+        (dom/h4 nil "Lists")
+        (apply dom/p nil
+          (map (fn [list]
+                 (dom/p nil
+                   (pr-str (dissoc list :todos ))
+                   (apply dom/ul nil
+                     (map (fn [todo]
+                            (dom/li nil (pr-str todo)))
+                       (:todos list)))))
+            (vals (:lists app))))
+        (dom/h4 nil "Commands")
+        (apply dom/p nil
+          (map (fn [command]
+                 (dom/p nil (pr-str command)))
+            (:commands app)))))))
 
 (defn list-view [app owner {:keys [list-id] :as params}]
   (reify
@@ -69,7 +103,8 @@
           (apply dom/ol nil
             (map (fn [todo] (dom/li
                               #js {:onClick #(om/set-state! owner :editing-todo todo)}
-                              (str (:name todo)))) todos)))))))
+                              (str (:name todo)))) todos))
+          (om/build debug-view app))))))
 
 (defn router [app owner]
   (reify
@@ -108,13 +143,13 @@
       (recur (rest commands) (c/apply-command (first commands) lists)))))
 
 (def commands [(c/CreateListCommand. 1 "Chores" (current-timestamp))
-               (c/CreateTodoCommand. 2 "Laundry" 1 (current-timestamp))
-               (c/CreateTodoCommand. 3 "Vacuum" 1 (current-timestamp))
+               (c/CreateTodoCommand. 2 "Laundry" (due-today) 1 (current-timestamp))
+               (c/CreateTodoCommand. 3 "Vacuum" (due-today) 1 (current-timestamp))
                (c/CreateListCommand. 4 "Safeway" (current-timestamp))
-               (c/CreateTodoCommand. 5 "Almond Milk" 4 (current-timestamp))
-               (c/CreateTodoCommand. 6 "Safeway Chicken" 4 (current-timestamp))
-               (c/CreateTodoCommand. 7 "Lettuce" 4 (current-timestamp))
-               (c/CreateTodoCommand. 8 "Dishes" 1 (current-timestamp))
+               (c/CreateTodoCommand. 5 "Almond Milk" (due-today) 4 (current-timestamp))
+               (c/CreateTodoCommand. 6 "Safeway Chicken" (due-today) 4 (current-timestamp))
+               (c/CreateTodoCommand. 7 "Lettuce" (due-today) 4 (current-timestamp))
+               (c/CreateTodoCommand. 8 "Dishes" (due-today) 1 (current-timestamp))
                (c/ReorderTodoCommand. 4 7 1)])
 
 (def app-state

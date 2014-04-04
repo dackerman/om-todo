@@ -1,6 +1,6 @@
 (ns om-todo.commands)
 
-(defrecord Todo [id name list-id])
+(defrecord Todo [id name due-date list-id])
 
 (defn get-key [todo]
   (pr-str (:id todo)))
@@ -32,10 +32,10 @@
     (let [list (TodoList. id name [])]
       (assoc lists id list))))
 
-(defrecord CreateTodoCommand [id name list-id timestamp]
+(defrecord CreateTodoCommand [id name due-date list-id timestamp]
   Command
   (apply-command [this lists]
-    (let [todo (Todo. id name list-id)]
+    (let [todo (Todo. id name due-date list-id)]
       (update-in lists [list-id] (fn [list] (add-todo list todo))))))
 
 (defrecord ReorderTodoCommand [list-id todo-id new-position]
