@@ -12,13 +12,13 @@
   (cljs-uuid-utils/make-random-uuid))
 
 (defn current-timestamp []
-  (.getTime (js/Date.)))
+  ;(.getTime (js/Date.)))
+  (js/moment))
 
 (def due-today current-timestamp)
 
 (defn event-val [e]
   (.. e -target -value))
-
 
 (defn new-todo-input [list owner]
   (reify
@@ -43,7 +43,7 @@
   (reify
     om/IRenderState
     (render-state [_ _]
-      (dom/span nil date-field))))
+      (dom/span nil (.format date-field)))))
 
 (defn edit-todo-view [todo owner]
   (reify

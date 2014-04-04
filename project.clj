@@ -27,5 +27,7 @@
                                      :output-to "main.js"
                                      :optimizations :advanced
                                      :pretty-print false
-                                     :preamble ["react/react.min.js"]
-                                     :externs ["react/externs/react.js"]}}]})
+                                     :preamble ["react/react.min.js" "moment/moment.min.js"]
+                                     :externs ["react/externs/react.js"]
+                                     :closure-warnings {:externs-validation :off
+                                                        :non-standard-jsdoc :off}}}]})

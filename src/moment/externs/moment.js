@@ -1,0 +1,1 @@
+function moment(input, format, lang, strict) {};
